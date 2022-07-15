@@ -1,42 +1,31 @@
 {
-  description = "Postgresql wit JIT option Database flake";
-
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-22.05";
   };
-
   outputs = { self, nixpkgs }:
-    with builtins;
     let
-#      #sources = (fromJSON (readFile ./flake.lock)).nodes;
       system = "x86_64-linux";
-#      pkgs = nixpkgs.legacyPackages.${system};
-#      derivations = with pkgs; import ./build.nix {
-#        inherit pkgs;
-#      };
-      overlay = final: prev: let
-        localPkgs = import ./default.nix {pkgs = final;};
-      in {
-        inherit (localPkgs) postgresql_10_jit postgresql_11_jit postgresql_12_jit postgresql_13_jit postgresql_14_jit;
+      pkgs = nixpkgs.legacyPackages.${system};
+    in rec {
+      overlay = final: prev: {
+        postgresql_jit_12 = final.callPackage ./postgresql.nix { postgresql = pkgs.postgresql_12; };
+        #citus_jit_12 = final.callPackage ./citus.nix { postgresql = final.postgresql_jit_12; };
+        postgresql_jit_13 = final.callPackage ./postgresql.nix { postgresql = pkgs.postgresql_13; };
+        citus_jit_13 = final.callPackage ./citus.nix { postgresql = final.postgresql_jit_13; };
+        postgresql_jit_14 = final.callPackage ./postgresql.nix { postgresql = pkgs.postgresql_14; };
+        citus_jit_14 = final.callPackage ./citus.nix { postgresql = final.postgresql_jit_14; };
       };
-    in
-    packages = import ./default.nix {
-        pkgs = import nixpkgs {inherit system;};
-    };
-    #defaultPackage = forAllSystems (system: self.packages.${system}.sops-init-gpg-key);
-    #devShell = nixpkgs.legacyPackages.${system}.callPackage ./shell.nix {};
+      legacyPackages = pkgs.extend self.overlay;
 
+      packages = {
+        inherit (self.legacyPackages) postgresql_jit citus_jit;
+        #default = with self.packages; postgresql_jit.withPackages (_: [ citus_jit ]);
+      };
 
-
-
-#    with pkgs; with derivations; rec {
-#      packages.${system} = derivations;
-#      #defaultPackage.${system} = aerospike-server;
-#      legacyPackages.${system} = extend overlay;
-#      #devShell.${system} = callPackage ./shell.nix derivations;
-#      nixosModule = {
-#        nixpkgs.overlays = [ overlay ];
-#      };
-#      overlay = final: prev: derivations;
-#    };
+      nixosModule = {
+        nixpkgs.overlays = [ overlay ];
+        #services.postgresql.package = pkgs.lib.mkDefault self.packages.default;
+        #services.postgresql.package = pkgs.lib.mkForce self.packages.default;
+      };
+  };
 }
