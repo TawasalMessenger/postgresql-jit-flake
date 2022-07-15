@@ -18,13 +18,12 @@
       legacyPackages = pkgs.extend self.overlay;
 
       packages = {
-        inherit (self.legacyPackages) postgresql_jit citus_jit;
+        inherit (self.legacyPackages) postgresql_jit_12 postgresql_jit_13 citus_jit_13 postgresql_jit_14 citus_jit_14;
         #default = with self.packages; postgresql_jit.withPackages (_: [ citus_jit ]);
       };
 
       nixosModule = {
         nixpkgs.overlays = [ overlay ];
-        #services.postgresql.package = pkgs.lib.mkDefault self.packages.default;
         #services.postgresql.package = pkgs.lib.mkForce self.packages.default;
       };
   };
