@@ -31,7 +31,7 @@ In configuration.nix.
 
 For JIT:
 
-postgresql = {
+services.postgresql = {
 
   enable = true;
 
@@ -46,10 +46,17 @@ postgresql = {
 };
 
 For Citus:
-postgresql = {
+
+services.postgresql = {
+
   enable = true;
+
   package = package = pkgs.postgresql_jit_14.withPackages(_: [ pkgs.citus_jit_14 ]); # Or 13
+  
   settings = {
+  
     shared_preload_libraries = "citus";
+  
   };
+
 };
