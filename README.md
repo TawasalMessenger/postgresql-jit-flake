@@ -1,8 +1,6 @@
 # postgresql-jit-flake
 Postgresql with support JIT and Citus
 
-Warning. Now there is working only one option from two: JIT or Citus. For working both option there is must override "withPackages" option of postgresql or its parameters.
-
 Usage.
 
 In flake.nix
@@ -45,7 +43,7 @@ services.postgresql = {
 
 };
 
-For Citus:
+For Citus and JIT:
 
 services.postgresql = {
 
